@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Waterfall</title>
+	<style>
+		body { margin: 0; padding: 0; }
+		#ul1 {
+			width: 1080px;
+			margin: 100px auto 0;
+		}
+		#ul1 li {
+			float: left;
+			width: 247px;
+			margin-right: 10px;
+			list-style: none;
+		}
+		#ul1 li div {
+			padding: 10px;
+			margin-bottom: 10px;
+			border: 1px solid black;
+		}
+		#ul1 li div img {
+			width: 225px;
+		}
+	</style>
+	<script src="ajax.js"></script>
+	<script>
+		window.onload = function () {
+			var oUl = document.getElementById('ul1');
+			var aLi = oUl.getElementsByTagName('li');
+			var iPage = 1;
+			var flag = true;
+			
+			getList();
+
+			window.onscroll = function () {
+				var _index = getShort();
+				var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+
+				if (aLi[_index].offsetHeight + getTop(aLi[_index]) < document.documentElement.clientHeight + scrollTop) {
+					if (flag) {
+						flag = false;
+						iPage++;
+						getList();
+					}
+				}
+			}
+
+			function getList () {
+				ajax('get', 'getPics.php', 'cpage=' + iPage, function (data) {
+					var data = JSON.parse(data);
+
+					if ( !data.length ) {
+						//后续没有数据了
+						return ;
+					}
+
+					for (var i = 0; i < data.length; i++) {
+						var _index = getShort();
+						
+						var oDiv = document.createElement('div');
+						var oImg = document.createElement('img');
+						oImg.style.width = 225 + 'px';
+						oImg.style.height = data[i].height * (225 / data[i].width)+ 'px';
+						oImg.src = data[i].preview;
+						oDiv.appendChild(oImg);
+						var oP = document.createElement('p');
+						oP.innerHTML = data[i].title;
+						oDiv.appendChild(oP);
+
+						aLi[_index].appendChild(oDiv);
+					}
+
+					flag = true;
+
+				});
+			}
+
+			function getShort () {
+				var index = 0;
+				var ih = aLi[index].offsetHeight;
+				for (var i = 1; i < aLi.length; i++) {
+					if (aLi[i].offsetHeight < ih) {
+						index = i;
+						ih = aLi[i].offsetHeight;
+					}
+				}
+				return index;
+			}
+
+			function getTop(obj) {
+				var iTop = 0;
+				while (obj) {
+					iTop += obj.offsetTop;
+					obj = obj.offsetParent; 
+				}
+				return iTop;
+			}
+		}
+	</script>
+</head>
+<body>
+	<ul id="ul1">
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+</body>
+</html>
